@@ -1,0 +1,16 @@
+{
+  "name": "ts-canvas-game-template",
+  "version": "1.0.0",
+  "description": "TypeScript template for simple browser games using Canvas 2D.",
+  "private": true,
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "ts-jest": "^29.4.6",
+    "@types/jest": "^30.0.0",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "test": "jest"
+  }
+}
