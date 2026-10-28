@@ -27,9 +27,20 @@ export class SoundEffect {
     }
 
     static fixContext(): void {
-        if (SoundEffect.audioContext.state === 'suspended') {
+        if (SoundEffect.audioContext.state !== 'running') {
             void SoundEffect.audioContext.resume();
         }
+    }
+
+    // Safari audio fix
+    static unlockOnUserInput(): void {
+        window.addEventListener('keydown', () => SoundEffect.fixContext());
+        window.addEventListener('pointerup', () => SoundEffect.fixContext());
+        window.addEventListener('touchend', () => SoundEffect.fixContext());
+    }
+
+    private static isContextRunning(): boolean {
+        return SoundEffect.audioContext.state === 'running';
     }
 
     public setVolume(volume: number): this {
@@ -57,17 +68,13 @@ export class SoundEffect {
         }
     }
 
-    public async play(): Promise<void> {
+    public play(): void {
 
-        if (this.mute || !this.buffer) {
+        if (this.mute || !this.buffer || !SoundEffect.isContextRunning()) {
             return;
         }
 
         try {
-            if (SoundEffect.audioContext.state === 'suspended') {
-                await SoundEffect.audioContext.resume();
-            }
-
             const source = SoundEffect.audioContext.createBufferSource();
             source.buffer = this.buffer;
             source.connect(this.gainNode);
@@ -103,11 +110,16 @@ export class SoundEffect {
 export class AudioManager {  // TODO - rename to SoundManager ?
 
     private sounds: Map<string, SoundEffect> = new Map();
-    constructor() {}
+    private enabled: boolean = true;
+
+    constructor() {
+        SoundEffect.unlockOnUserInput();
+    }
 
     async loadSounds(soundSources: Map<string, string>) {
         const sounds = Array.from(soundSources).map(([id, src]) => {
             const sound = new SoundEffect(src);
+            sound.setEnabled(this.enabled);
             this.sounds.set(id, sound);
             return sound;
         });
@@ -116,10 +128,6 @@ export class AudioManager {  // TODO - rename to SoundManager ?
 
     get(id: string): SoundEffect | undefined {
         return this.sounds.get(id);
-    }
-
-    fixContext(): void {
-        SoundEffect.fixContext();
     }
 
     play(id: string): void {
@@ -132,6 +140,7 @@ export class AudioManager {  // TODO - rename to SoundManager ?
     }
 
     enableAll(enabled: boolean) {
+        this.enabled = enabled;
         for (const sound of this.sounds.values()) {
             sound.setEnabled(enabled);
         }

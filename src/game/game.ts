@@ -1,5 +1,5 @@
 import {IGame} from "../core/loop.js";
-import {InputManager} from "../core/input.js";
+import {InputManager, isMobileDevice} from "../core/input.js";
 import {AudioManager} from "../core/audio.js";
 import {GameObjectManager, CollisionManager} from "../core/objects.js";
 import {TextureManager} from "../core/render.js";
@@ -16,7 +16,6 @@ export class Game implements IGame {
     private collisions: CollisionManager;
 
     private assetsLoaded:  boolean = false;
-    private audioUnlocked: boolean = false;
     private isDebug: boolean = false;
 
     private spaceship: Spaceship;
@@ -41,6 +40,8 @@ export class Game implements IGame {
         this.audio      = new AudioManager();
         this.objects    = new GameObjectManager();
         this.collisions = new CollisionManager();
+
+        this.audio.enableAll(!isMobileDevice());
 
         this.objects.add(new StarsBackground(canvas.width / 2, canvas.height / 2));
         this.objects.add(new StarsBackground(canvas.width / 2, canvas.height / 2 - 600));
@@ -117,11 +118,6 @@ export class Game implements IGame {
         if (!this.assetsLoaded) return;
 
         this.updateFps(deltaTime);
-
-        if (!this.audioUnlocked && this.input.wasAnyInputPressed()) {
-            this.audio.fixContext(); // fixes audio delay in Safari
-            this.audioUnlocked = true;
-        }
 
         if (this.spaceship.isActive)
         {

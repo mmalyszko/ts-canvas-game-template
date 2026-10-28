@@ -1,3 +1,7 @@
+export function isMobileDevice(): boolean {
+    return window.matchMedia('(pointer: coarse)').matches;
+}
+
 export class InputManager {
 
     private canvas: HTMLCanvasElement; // required for mouse/touch events
